@@ -64,7 +64,8 @@ prompt_segment() {
 
 # End the prompt, closing any open segments
 prompt_end() {
-  if [[ -n $CURRENT_BG ]]; then
+  is_git_repo=$(git rev-parse --git-dir 2>/dev/null)
+  if [[ -z "$is_git_repo" ]]; then
     echo -n " %{%k%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR"
   else
     echo -n "%{%k%}"
@@ -198,12 +199,12 @@ prompt_git() {
     ref=$(git symbolic-ref HEAD 2> /dev/null) || ref="➦ $(git rev-parse --short HEAD 2> /dev/null)"
     if [[ -n $dirty ]]; then
       clean=''
-      bgclr='yellow'
-      fgclr='magenta'
+      bgclr='NONE'
+      fgclr='yellow'
     else
       clean=' ✔'
-      bgclr='green'
-      fgclr='white'
+      bgclr='NONE'
+      fgclr='green'
     fi
 
     local upstream=$(git rev-parse --symbolic-full-name --abbrev-ref @{upstream} 2> /dev/null)
@@ -221,8 +222,8 @@ prompt_git() {
     local number_modified=$(\grep -c "^.M" <<< "${git_status}")
     if [[ $number_modified -gt 0 ]]; then
       modified=" $number_modified●"
-      bgclr='red'
-      fgclr='white'
+      bgclr='NONE'
+      fgclr='red'
     fi
 
     local number_added_modified=$(\grep -c "^M" <<< "${git_status}")
@@ -289,7 +290,7 @@ prompt_git() {
 
     prompt_segment $bgclr $fgclr
 
-    echo -n "%{$fg_bold[$fgclr]%}${ref/refs\/heads\//$PL_BRANCH_CHAR $upstream_prompt}${mode}$to_push$to_pull$clean$tagged$stashed$untracked$modified$deleted$added$ready_commit%{$fg_no_bold[$fgclr]%}"
+    echo -n "%{$fg_bold[$fgclr]%}${ref/refs\/heads\//$PL_BRANCH_CHAR}${mode}$to_push$to_pull$clean$tagged$stashed$untracked$modified$deleted$added$ready_commit%{$fg_no_bold[$fgclr]%}"
   fi
 }
 
@@ -342,7 +343,7 @@ prompt_virtualenv() {
 }
 
 prompt_time() {
-  prompt_segment blue white "%{$fg_bold[white]%}%D{%a %e %b - %H:%M}%{$fg_no_bold[white]%}"
+  prompt_segment blue white "%{$fg_bold[white]%}%D{%H:%M}%{$fg_no_bold[white]%}"
 }
 
 # Status:
@@ -362,9 +363,6 @@ prompt_status() {
 ## Main prompt
 build_prompt() {
   RETVAL=$?
-  echo -n "\n"
-  prompt_status
-  prompt_battery
   prompt_time
   prompt_virtualenv
   prompt_dir
@@ -372,9 +370,6 @@ build_prompt() {
   prompt_hg
   prompt_end
   CURRENT_BG='NONE'
-  echo -n "\n"
-  prompt_context
-  prompt_end
 }
 
 PROMPT='%{%f%b%k%}$(build_prompt) '
