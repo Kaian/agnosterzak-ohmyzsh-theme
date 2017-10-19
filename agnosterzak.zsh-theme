@@ -360,10 +360,18 @@ prompt_status() {
   [[ -n "$symbols" ]] && prompt_segment black default "$symbols"
 }
 
+# Hostname
+prompt_hostname() {
+	local hostname
+	hostname=$(hostname);
+	prompt_segment black default "%{$fg_bold[red]%}$hostname%{$fg_no_bold[black]%}"
+}
+
 ## Main prompt
 build_prompt() {
   RETVAL=$?
   prompt_time
+  prompt_hostname
   prompt_virtualenv
   prompt_dir
   prompt_git
